@@ -3,3 +3,5 @@
 .lein-repl-history
 target/
 pic.jpeg
+.DS_Store
+.nrepl-port

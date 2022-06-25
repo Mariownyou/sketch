@@ -2,7 +2,7 @@
   (:require [clojure.java.io :as io])
   (:require [quil.core :refer :all :include-macros true]))
 
-(def file "red.png")
+(def file "pic.jpeg")
 (def resized "resized.jpeg")
 (def size [500 500])
 
@@ -29,12 +29,19 @@
 
 (apply resize-image (list* file resized scaled-size))
 
-(defn rgb [color] 
-  (let [colors (rest (clojure.string/split color #""))
-        red (take 2 colors)
-        green (take 2 (drop 2 colors))
-        blue (take 2 (drop 4 colors))]
-    (map #(-> (conj % "0x") (clojure.string/join) (read-string)) [red green blue])))
+(defn rgba [color]
+  [(red color) (green color) (blue color)])
+
+(defn blue-filter [c]
+  (assoc c 2 (+ (nth c 2) 30)))
+
+(defn set-p [im i j]
+  (->> (get-pixel im i j)
+       rgba
+       ; (map (fn [c] (+ c 10)))
+       blue-filter
+       (apply color)
+       (set-pixel (+ i (first offset)) (+ j (last offset)))))
 
 (defn setup []
   (background 255 255 255)
@@ -47,14 +54,9 @@
       (let [px (pixels im)]
         (doseq [i (range (first scaled-size))
                 j (range (last  scaled-size))]
-          ; (set-pixel (+ i (first offset)) (+ j (last offset))
-          ;   (apply color (rgb (str \# (hex (get-pixel im i j)))))))
-          (set-pixel i j
-            (apply color (rgb (str \# (hex (get-pixel im i j)))))))
+          (set-p im i j))
           (fill 0 0 0)
           (text file 210 490)
-          (let [p (get-pixel im 0 0)]
-            (println p (hex p) (rgb (str \# (hex p)))))
           (no-loop)))))
 
 (defsketch my
